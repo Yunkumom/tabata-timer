@@ -1,0 +1,175 @@
+/* 這是全新的樣式表，專為打造您想要的深色主題而設計。
+*/
+
+/* 定義顏色變數，方便統一管理和修改 */
+:root {
+    --bg-color: #1a1a1a; /* 更深的背景色 */
+    --surface-color: #2c2c2e; /* 卡片等元素的表面顏色 */
+    --primary-color: #00f2a9; /* 主題綠色，用於強調 */
+    --text-color: #ffffff; /* 主要文字顏色 */
+    --text-secondary-color: #a7a7a7; /* 次要文字，如標籤 */
+    --red-color: #ff453a; /* 用於 'Rest' 等提示 */
+}
+
+/* 全局樣式設定 */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 讓內容從頂部開始 */
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+/* App 主容器 */
+.timer-app {
+    width: 100%;
+    max-width: 420px; /* 根據手機螢幕優化寬度 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 頂部 Header 區域 */
+header {
+    text-align: center;
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.title {
+    font-size: 20px;
+    color: var(--text-secondary-color);
+    font-weight: 500;
+    margin: 0 0 20px 0;
+}
+
+.main-timer {
+    font-size: 96px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.current-state {
+    font-size: 22px;
+    font-weight: 600;
+    height: 30px; /* 給一個固定高度，防止文字變動時跳動 */
+    color: var(--primary-color);
+    text-transform: uppercase; /* 文字大寫 */
+}
+
+/* 設定區域的網格佈局 */
+.settings {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 創建兩欄等寬佈局 */
+    gap: 15px; /* 網格間距 */
+    width: 100%;
+    margin-bottom: 40px;
+}
+
+/* 每個設定卡片的樣式 */
+.setting-item {
+    background-color: var(--surface-color);
+    border-radius: 12px;
+    padding: 20px 15px;
+    text-align: left; /* 文字靠左，更像 App */
+    position: relative; /* 為了自訂箭頭定位 */
+}
+
+.setting-item label {
+    display: block;
+    color: var(--text-secondary-color);
+    margin-bottom: 8px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* 針對 select 元素的全新樣式 */
+.setting-item select,
+.setting-item input[type="number"] {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 32px;
+    font-weight: bold;
+    text-align: left;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* 隱藏數字輸入框的上下箭頭 */
+.setting-item input[type="number"]::-webkit-outer-spin-button,
+.setting-item input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.setting-item input[type="number"] {
+    -moz-appearance: textfield; /* For Firefox */
+}
+
+
+.setting-item select:focus,
+.setting-item input:focus {
+    outline: none;
+    color: var(--primary-color);
+}
+
+/* 使用 ::after 偽元素自訂下拉箭頭 */
+.setting-item:has(select)::after {
+    content: '';
+    position: absolute;
+    top: 55%;
+    right: 20px;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 8px solid var(--text-secondary-color); /* 箭頭顏色 */
+    pointer-events: none; /* 讓點擊可以穿透箭頭 */
+}
+
+
+/* 底部控制項 */
+.controls {
+    text-align: center;
+}
+
+.play-btn {
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: var(--bg-color);
+    box-shadow: 0 4px 15px rgba(0, 242, 169, 0.3); /* 增加一點陰影，更有質感 */
+    transition: transform 0.1s ease;
+}
+
+.play-btn:active {
+    transform: scale(0.95); /* 點擊時有縮小效果 */
+}
+
+.play-btn svg {
+    width: 40px;
+    height: 40px;
+    margin-left: 5px; /* 微調播放圖示使其看起來更置中 */
+}
+
+/* 讓暫停圖示置中 */
+.play-btn svg path[d*="M6 19h4V5H6v14zm8-14v14h4V5h-4z"] {
+    transform-origin: center;
+    transform: translateX(-2px);
+}

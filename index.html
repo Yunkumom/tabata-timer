@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabata Timer</title>
+    <!-- 再次確認：這行的路徑 href="css/style.css" 絕對正確嗎？ -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="timer-app">
+        <header>
+            <h1 class="title">Tabata Timer</h1>
+            <div class="main-timer" id="main-timer">00:00</div>
+            <div class="current-state" id="current-state">Press Start</div>
+        </header>
+
+        <main class="settings">
+            <!-- Work Time Setting -->
+            <div class="setting-item">
+                <label>Work</label>
+                <select id="work-time"></select>
+            </div>
+            
+            <!-- Rest Time Setting -->
+            <div class="setting-item">
+                <label>Rest</label>
+                <select id="rest-time"></select>
+            </div>
+            
+            <!-- Exercises per Round Setting -->
+            <div class="setting-item">
+                <label>Exercises</label>
+                <input type="number" id="exercises-count" value="8" min="1">
+            </div>
+
+            <!-- Rounds Setting -->
+            <div class="setting-item">
+                <label>Rounds</label>
+                <input type="number" id="rounds-count" value="1" min="1">
+            </div>
+
+            <!-- Round Reset Setting -->
+            <div class="setting-item">
+                <label>Round Reset</label>
+                <select id="round-reset-time"></select>
+            </div>
+        </main>
+
+        <footer class="controls">
+            <button id="start-pause-btn" class="play-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Firebase SDK and initialization -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-analytics-compat.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyCJ-lzoyaFxO1xjlJIPnZDBgsY9SkP7Rzo",
+        authDomain: "gtimer-17.firebaseapp.com",
+        projectId: "gtimer-17",
+        storageBucket: "gtimer-17.appspot.com",
+        messagingSenderId: "1083698902459",
+        appId: "1:1083698902459:web:6e80b75e5dd305bb52409e",
+        measurementId: "G-MX45RRK643"
+      };
+      firebase.initializeApp(firebaseConfig);
+      firebase.analytics();
+    </script>
+    
+    <!-- Your application script -->
+    <script src="js/app.js"></script>
+</body>
+</html>
