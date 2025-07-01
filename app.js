@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 獲取所有 DOM 元素 (No changes)
+    // 1. 獲取所有 DOM 元素
     const mainTimerEl = document.getElementById('main-timer');
     const currentStateEl = document.getElementById('current-state');
     const startPauseBtn = document.getElementById('start-pause-btn');
@@ -9,18 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const exercisesCountInput = document.getElementById('exercises-count');
     const roundsCountInput = document.getElementById('rounds-count');
 
-    // 2. 計時器狀態變數 (No changes)
+    // 2. 計時器狀態變數
     let timerId = null;
     let state = {
         totalSeconds: 0,
         isRunning: false,
-        currentMode: 'idle', // 'idle', 'work', 'rest', 'round-rest', 'finished'
+        currentMode: 'idle', // 'idle', 'prepare', 'work', 'rest', 'round-rest', 'finished'
         currentExercise: 1,
         currentRound: 1,
+        isHalfwayAnnounced: false, // 追蹤 "halfway" 是否已播報
     };
 
-    // --- 輔助函式 --- (No changes to these helpers)
+    // --- 輔助函式 ---
 
+    /**
+     * 動態填充時間選單 (Work, Rest, Round Reset)
+     */
     function populateTimeSelects() {
         const timeSelects = [workTimeInput, restTimeInput, roundResetTimeInput];
         timeSelects.forEach(select => {
@@ -37,6 +41,32 @@ document.addEventListener('DOMContentLoaded', () => {
         roundResetTimeInput.value = '10';
     }
 
+    /**
+     * 動態填充數量選單 (Exercises, Rounds)
+     */
+    function populateCountSelects() {
+        // 填充 Exercises 選單 (1-20)
+        for (let i = 1; i <= 20; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            exercisesCountInput.appendChild(option);
+        }
+        exercisesCountInput.value = '8'; // 預設值
+
+        // 填充 Rounds 選單 (1-20)
+        for (let i = 1; i <= 20; i++) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `${i}x`; // 顯示為 "1x", "2x"
+            roundsCountInput.appendChild(option);
+        }
+        roundsCountInput.value = '1'; // 預設值
+    }
+
+    /**
+     * 使用瀏覽器內建語音說出文字
+     */
     function speak(text) {
         if (!window.speechSynthesis) {
             console.warn("Browser does not support Speech Synthesis.");
@@ -49,12 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.speak(utterance);
     }
 
+    /**
+     * 將秒數格式化為 "mm:ss"
+     */
     function formatTime(seconds) {
         const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
         const secs = (seconds % 60).toString().padStart(2, '0');
         return `${mins}:${secs}`;
     }
 
+    /**
+     * 計算並更新總時間 (包含準備時間)
+     */
     function updateTotalTimerDisplay() {
         if (state.isRunning) return;
 
@@ -68,10 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (rounds > 0 && exercises > 0) {
             const timePerRound = (workSec * exercises) + (restSec * (exercises - 1));
             totalSeconds = (timePerRound * rounds) + (roundRestSec * (rounds - 1));
+            // 加上第一次的準備時間
+            totalSeconds += roundRestSec;
         }
         
-        // 修正負數時間問題
-        if(totalSeconds < 0) totalSeconds = 0;
+        if (totalSeconds < 0) totalSeconds = 0;
 
         mainTimerEl.textContent = formatTime(totalSeconds);
         currentStateEl.textContent = "Press Start";
@@ -83,8 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (state.isRunning) {
             pauseTimer();
         } else {
-            // 【修改 4】: 第一次點擊時，先"解鎖"音訊權限
-            // 這是為了讓 Safari 和 Chrome 等瀏覽器能正常播放聲音
+            // 第一次點擊時，先"解鎖"音訊權限
             if (state.currentMode === 'idle' || state.currentMode === 'finished') {
                 const dummySound = new Audio();
                 dummySound.play().catch(e => console.error("Audio unlock failed", e));
@@ -94,18 +130,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startTimer() {
+        // 計時器從 'prepare' 狀態開始
         if (state.currentMode === 'idle' || state.currentMode === 'finished') {
-            state.currentMode = 'work';
+            state.currentMode = 'prepare';
             state.currentRound = 1;
             state.currentExercise = 1;
-            state.totalSeconds = parseInt(workTimeInput.value, 10);
-            speak('Work');
+            state.totalSeconds = parseInt(roundResetTimeInput.value, 10);
+            speak('Get Ready');
         }
 
         state.isRunning = true;
+        state.isHalfwayAnnounced = false; // 重置 halfway 標記
         updateDisplay();
         startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; // Pause icon
-        if (timerId) clearInterval(timerId); // 清除舊的計時器以防萬一
+        if (timerId) clearInterval(timerId);
         timerId = setInterval(tick, 1000);
     }
 
@@ -117,7 +155,6 @@ document.addEventListener('DOMContentLoaded', () => {
         startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>`; // Play icon
     }
     
-    // 【修改 5】: 新增了 resetTimer 函式來處理重置邏輯
     function resetTimer() {
         clearInterval(timerId);
         timerId = null;
@@ -125,17 +162,28 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentMode = 'idle';
         state.currentRound = 1;
         state.currentExercise = 1;
+        state.isHalfwayAnnounced = false;
         updateTotalTimerDisplay();
         startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>`; // Play icon
     }
-
 
     function tick() {
         state.totalSeconds--;
         updateDisplay();
 
+        // 處理倒數和中點提示
         if (state.totalSeconds > 0 && state.totalSeconds <= 3) {
             speak(state.totalSeconds.toString());
+        }
+
+        // 處理 "Halfway there" 提示
+        if (state.currentMode === 'work') {
+            const workDuration = parseInt(workTimeInput.value, 10);
+            const halfwayPoint = Math.floor(workDuration / 2);
+            if (state.totalSeconds === halfwayPoint && !state.isHalfwayAnnounced) {
+                speak('Halfway there');
+                state.isHalfwayAnnounced = true; // 標記已播報，避免重複
+            }
         }
 
         if (state.totalSeconds <= 0) {
@@ -144,31 +192,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function moveToNextState() {
+        state.isHalfwayAnnounced = false; // 進入新狀態前，重置 halfway 標記
+
         const exercises = parseInt(exercisesCountInput.value);
         const rounds = parseInt(roundsCountInput.value);
-
-        // 使用 try-catch 來防止音訊播放失敗導致程式崩潰
+        
+        // 播放狀態轉換音效
         try {
             const beepSound = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
             beepSound.play();
-        } catch (e) {
-            console.error("Could not play beep sound:", e);
-        }
+        } catch (e) { console.error("Could not play beep sound:", e); }
 
-        if (state.currentMode === 'work') {
+        // 狀態轉換邏輯
+        if (state.currentMode === 'prepare') {
+            state.currentMode = 'work';
+            state.totalSeconds = parseInt(workTimeInput.value, 10);
+            speak('Work');
+        } else if (state.currentMode === 'work') {
             if (state.currentExercise < exercises) {
-                // 進入組間休息
                 state.currentMode = 'rest';
                 state.totalSeconds = parseInt(restTimeInput.value, 10);
                 speak('Rest');
-            } else { // 完成一回合的所有組數
+            } else {
                 if (state.currentRound < rounds) {
-                    // 進入回合間休息
                     state.currentMode = 'round-rest';
                     state.totalSeconds = parseInt(roundResetTimeInput.value, 10);
                     speak('Round Complete. Rest.');
                 } else {
-                    // 全部完成
                     finishTimer();
                     return;
                 }
@@ -195,7 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const rounds = parseInt(roundsCountInput.value);
 
         if (state.isRunning) {
-            if (state.currentMode === 'work') {
+            if (state.currentMode === 'prepare') {
+                currentStateEl.textContent = 'GET READY';
+            } else if (state.currentMode === 'work') {
                 currentStateEl.textContent = `WORK ${state.currentExercise}/${exercises} (R ${state.currentRound}/${rounds})`;
             } else if (state.currentMode === 'rest') {
                 currentStateEl.textContent = 'REST';
@@ -218,7 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- 初始化 ---
 
     startPauseBtn.addEventListener('click', () => {
-        // 【修改 6】: 簡化並修正了開始/暫停/重置的邏輯
         if (state.currentMode === 'finished') {
             resetTimer();
         } else {
@@ -227,9 +278,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     [workTimeInput, restTimeInput, roundResetTimeInput, exercisesCountInput, roundsCountInput].forEach(input => {
-        input.addEventListener('change', updateTotalTimerDisplay); // 改成 'change' 事件更適合 select
+        input.addEventListener('change', updateTotalTimerDisplay);
     });
 
+    // 頁面載入時，先填充選單，再初始化顯示
     populateTimeSelects();
+    populateCountSelects(); // 新增的函式呼叫
     updateTotalTimerDisplay();
 });
