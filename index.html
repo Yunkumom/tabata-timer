@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabata Timer</title>
-    <!-- 再次確認：這行的路徑 href="css/style.css" 絕對正確嗎？ -->
-    <link rel="stylesheet" href="css/style.css">
+    <!-- 
+        【修改 1】: 修正路徑
+        GitHub Pages 會將所有檔案放在同一個根目錄下。
+        所以 CSS 檔案的路徑應該是 "style.css" 而不是 "css/style.css"。
+    -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="timer-app">
@@ -56,24 +60,17 @@
         </footer>
     </div>
 
-    <!-- Firebase SDK and initialization -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-analytics-compat.js"></script>
-    <script>
-      const firebaseConfig = {
-        apiKey: "AIzaSyCJ-lzoyaFxO1xjlJIPnZDBgsY9SkP7Rzo",
-        authDomain: "gtimer-17.firebaseapp.com",
-        projectId: "gtimer-17",
-        storageBucket: "gtimer-17.appspot.com",
-        messagingSenderId: "1083698902459",
-        appId: "1:1083698902459:web:6e80b75e5dd305bb52409e",
-        measurementId: "G-MX45RRK643"
-      };
-      firebase.initializeApp(firebaseConfig);
-      firebase.analytics();
-    </script>
+    <!-- 
+        【修改 2】: 移除 Firebase
+        GitHub Pages 是純靜態託管，無法使用 Firebase 的後端分析功能。
+        這些 script 標籤會導致瀏覽器嘗試載入它們，但對我們的計時器沒有幫助，可以安全移除。
+    -->
+    <!-- Firebase SDK and initialization (REMOVED) -->
     
-    <!-- Your application script -->
-    <script src="js/app.js"></script>
+    <!-- 
+        【修改 3】: 修正路徑
+        和 CSS 一樣，JS 檔案的路徑也應該是 "app.js"。
+    -->
+    <script src="app.js"></script>
 </body>
 </html>
