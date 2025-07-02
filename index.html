@@ -49,9 +49,22 @@
                 <label>Round Reset</label>
                 <select id="round-reset-time"></select>
             </div>
+
+            <!-- 【新增】Sound 開關設定 -->
+            <div class="setting-item" id="sound-toggle">
+                <label>Sound</label>
+                <div class="setting-value" id="sound-status">On</div>
+            </div>
         </main>
 
         <footer class="controls">
+            <!-- 【新增】重置按鈕，預設隱藏 -->
+            <button id="reset-btn" class="reset-btn hidden">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                </svg>
+            </button>
+            
             <button id="start-pause-btn" class="play-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
                   <path d="M8 5v14l11-7z"/>
@@ -59,18 +72,7 @@
             </button>
         </footer>
     </div>
-
-    <!-- 
-        【修改 2】: 移除 Firebase
-        GitHub Pages 是純靜態託管，無法使用 Firebase 的後端分析功能。
-        這些 script 標籤會導致瀏覽器嘗試載入它們，但對我們的計時器沒有幫助，可以安全移除。
-    -->
-    <!-- Firebase SDK and initialization (REMOVED) -->
     
-    <!-- 
-        【修改 3】: 修正路徑
-        和 CSS 一樣，JS 檔案的路徑也應該是 "app.js"。
-    -->
     <script src="app.js"></script>
 </body>
 </html>

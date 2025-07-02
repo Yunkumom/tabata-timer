@@ -8,6 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const roundResetTimeInput = document.getElementById('round-reset-time');
     const exercisesCountInput = document.getElementById('exercises-count');
     const roundsCountInput = document.getElementById('rounds-count');
+    // 【新增】獲取 Sound 和 Reset 的新元素
+    const soundToggle = document.getElementById('sound-toggle');
+    const soundStatusEl = document.getElementById('sound-status');
+    const resetBtn = document.getElementById('reset-btn');
 
     // 2. 計時器狀態變數
     let timerId = null;
@@ -18,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         currentExercise: 1,
         currentRound: 1,
         isHalfwayAnnounced: false, // 追蹤 "halfway" 是否已播報
+        isMuted: false, // 【新增】靜音狀態，預設不靜音
     };
 
     // --- 輔助函式 ---
@@ -65,13 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * 使用瀏覽器內建語音說出文字
+     * 【修改】播放聲音前檢查是否靜音
      */
     function speak(text) {
-        if (!window.speechSynthesis) {
-            console.warn("Browser does not support Speech Synthesis.");
-            return;
-        }
+        if (state.isMuted || !window.speechSynthesis) return;
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'en-US';
@@ -113,6 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
         mainTimerEl.textContent = formatTime(totalSeconds);
         currentStateEl.textContent = "Press Start";
     }
+    
+    /**
+     * 【新增】切換聲音開關的函式
+     */
+    function toggleSound() {
+        state.isMuted = !state.isMuted;
+        soundStatusEl.textContent = state.isMuted ? "Off" : "On";
+        // 如果正在倒數，可以立即播放或停止來給予回饋
+        if (!state.isMuted) {
+            speak('Sound on');
+        } else {
+            window.speechSynthesis.cancel();
+        }
+    }
+
 
     // --- 核心計時器控制 ---
 
@@ -129,8 +146,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+     /**
+     * 【修改】開始計時器時，顯示重置按鈕
+     */
     function startTimer() {
-        // 計時器從 'prepare' 狀態開始
         if (state.currentMode === 'idle' || state.currentMode === 'finished') {
             state.currentMode = 'prepare';
             state.currentRound = 1;
@@ -138,11 +157,11 @@ document.addEventListener('DOMContentLoaded', () => {
             state.totalSeconds = parseInt(roundResetTimeInput.value, 10);
             speak('Get Ready');
         }
-
         state.isRunning = true;
-        state.isHalfwayAnnounced = false; // 重置 halfway 標記
+        state.isHalfwayAnnounced = false;
+        resetBtn.classList.remove('hidden'); // 顯示重置按鈕
         updateDisplay();
-        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`; // Pause icon
+        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
         if (timerId) clearInterval(timerId);
         timerId = setInterval(tick, 1000);
     }
@@ -155,6 +174,9 @@ document.addEventListener('DOMContentLoaded', () => {
         startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>`; // Play icon
     }
     
+    /**
+     * 【修改】重置計時器時，隱藏重置按鈕
+     */
     function resetTimer() {
         clearInterval(timerId);
         timerId = null;
@@ -163,9 +185,11 @@ document.addEventListener('DOMContentLoaded', () => {
         state.currentRound = 1;
         state.currentExercise = 1;
         state.isHalfwayAnnounced = false;
+        resetBtn.classList.add('hidden'); // 隱藏重置按鈕
         updateTotalTimerDisplay();
-        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>`; // Play icon
+        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M8 5v14l11-7z"/></svg>`;
     }
+
 
     function tick() {
         state.totalSeconds--;
@@ -191,17 +215,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * 【修改】播放嗶聲前檢查是否靜音
+     */
     function moveToNextState() {
-        state.isHalfwayAnnounced = false; // 進入新狀態前，重置 halfway 標記
-
+        state.isHalfwayAnnounced = false;
         const exercises = parseInt(exercisesCountInput.value);
         const rounds = parseInt(roundsCountInput.value);
         
-        // 播放狀態轉換音效
-        try {
-            const beepSound = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
-            beepSound.play();
-        } catch (e) { console.error("Could not play beep sound:", e); }
+        // 播放狀態轉換音效 (檢查靜音)
+        if (!state.isMuted) {
+            try {
+                const beepSound = new Audio('https://www.soundjay.com/buttons/sounds/button-16.mp3');
+                beepSound.play();
+            } catch (e) { console.error("Could not play beep sound:", e); }
+        }
 
         // 狀態轉換邏輯
         if (state.currentMode === 'prepare') {
@@ -257,14 +285,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /**
+     * 【修改】完成計時器時，隱藏重置按鈕
+     */
     function finishTimer() {
         clearInterval(timerId);
         state.isRunning = false;
         state.currentMode = 'finished';
+        resetBtn.classList.add('hidden'); // 隱藏重置按鈕
         mainTimerEl.textContent = "DONE!";
         currentStateEl.textContent = "Workout Complete";
         speak('Workout Complete. Well done!');
-        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`; // Reset icon
+        startPauseBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="48" height="48"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>`;
     }
     
     // --- 初始化 ---
@@ -276,6 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleTimer();
         }
     });
+
+    // 【新增】為新按鈕加上事件監聽
+    soundToggle.addEventListener('click', toggleSound);
+    resetBtn.addEventListener('click', resetTimer);
 
     [workTimeInput, restTimeInput, roundResetTimeInput, exercisesCountInput, roundsCountInput].forEach(input => {
         input.addEventListener('change', updateTotalTimerDisplay);

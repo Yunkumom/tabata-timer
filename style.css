@@ -173,3 +173,51 @@ header {
     transform-origin: center;
     transform: translateX(-2px);
 }
+
+/* 【新增】Sound 設定格的值的樣式 */
+.setting-item .setting-value {
+    color: var(--text-color);
+    font-size: 32px;
+    font-weight: bold;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+}
+
+/* 【新增】底部控制項的容器樣式，使用 Flexbox 來對齊按鈕 */
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px; /* 按鈕之間的間距 */
+}
+
+/* 【新增】重置按鈕的樣式 */
+.reset-btn {
+    background-color: var(--surface-color); /* 深灰色背景 */
+    border: none;
+    border-radius: 50%;
+    width: 60px; /* 比主按鈕小一點 */
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-secondary-color); /* 圖示顏色 */
+    transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+    background-color: #444; /* 滑鼠懸停時變亮一點 */
+    color: var(--text-color);
+}
+
+.reset-btn svg {
+    width: 30px;
+    height: 30px;
+}
+
+/* 【新增】用來隱藏元素的通用 class */
+.hidden {
+    display: none !important;
+}
